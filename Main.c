@@ -15,6 +15,9 @@ bool isRunning = true;
 ptrMap map = NULL;
 ptrPlayer player = NULL;
 ptrPlayer blink = NULL;
+
+
+ptrPlayer enemies[4];
 ptrGameManager gameManager;
 
 int init();
@@ -120,8 +123,12 @@ void start(char* mapName){
 	map = createMapFromFile(mapName);
 	resizeMap(map);
 	player = createPlayer(map);
-	//blink = createPlayer(map);
-	//printf("hehe\n");
+	blink = createBlink(map);
+
+	enemies[0] = blink;
+	enemies[1] = blink;
+	enemies[2] = blink;
+	enemies[3] = blink;
 
 	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED); 
 
@@ -138,7 +145,7 @@ void draw(){
 	SDL_RenderClear(renderer); 
 	
 
-	SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
+	SDL_SetRenderDrawColor(renderer, 0, 0, 100, 255);
 
 	SDL_Rect rect;
 	rect.w = map->rectSize;
@@ -148,13 +155,20 @@ void draw(){
 
 			rect.x = j * rect.w + j + map->start_x ;
 			rect.y = i * rect.h + i + map->start_y;
-			if(map->matrix[i][j] == 1)
+			if(map->matrix[i][j] == 1){
+				SDL_SetRenderDrawColor(renderer, 0, 0, 100, 255);
 				SDL_RenderFillRect(renderer, &rect);
+			}
+			if(map->matrix[i][j] == 2){
+				SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+				SDL_RenderFillRect(renderer, &rect);
+			}
+
 		}
 	}
 
 	drawPlayer(player, map, renderer);
-	//drawPlayer(blink, map, renderer);
+	drawPlayer(blink, map, renderer);
 
 	//SDL_RenderCopy(renderer, message, NULL, &scoreRect);
 
@@ -163,8 +177,26 @@ void draw(){
 
 void update(){
 
-	updatePlayer(player, map);
-}
+	updateEnemy(blink, map);
+	int gameOver = updatePlayer(player, map, enemies);
+
+	if(gameOver == 1){
+		SDL_Delay(1500);
+		gameManager->life--;
+		
+		if(gameManager->life <= 0){
+			isRunning = false;			
+		}
+
+		player = createPlayer(map);
+		blink = createBlink(map);
+
+		enemies[0] = blink;
+		enemies[1] = blink;
+		enemies[2] = blink;
+		enemies[3] = blink;
+	}
+}	
 
 void end(){
 
