@@ -75,3 +75,30 @@ void resizeMap(ptrMap map)
 	printf("%i\n", map->rectSize );
 }
 
+void updateMap(ptrMap map){
+
+	for(int i = 0; i < map->rows; i++){
+		for(int j = 0; j < map->columns; j++){
+			
+			if(map->matrix[i][j] >= 600){
+				map->matrix[i][j]--;
+			}
+			else if(map->matrix[i][j] > 400 && map->matrix[i][j] < 600){
+				map->matrix[i][j] = 0;
+			}
+		}
+	}
+}
+
+void removeRastro(ptrMap map){
+
+	for(int i = 0; i < map->rows; i++){
+		for(int j = 0; j < map->columns; j++){
+		
+			if(map->matrix[i][j] >= 400){
+				map->matrix[i][j] = 0;
+			}
+		}
+	}
+}
+

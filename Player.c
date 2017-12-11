@@ -116,6 +116,7 @@ void drawPlayer(ptrPlayer p, ptrMap m, SDL_Renderer* renderer){
 int updatePlayer(ptrPlayer p, ptrMap m, ptrPlayer enemies[4]){
 
 	movePlayer(p, m);
+
 	if(p->pilulaTime > 0)
 		p->pilulaTime--;
 
@@ -136,12 +137,6 @@ int updatePlayer(ptrPlayer p, ptrMap m, ptrPlayer enemies[4]){
 		}
 	}
 
-
-	if(m->matrix[p->obj.pos.row][p->obj.pos.column] == 2){
-		m->matrix[p->obj.pos.row][p->obj.pos.column] = 0;
-		p->pilulaTime = 500;
-	}
-
 	return 0;
 }
 
@@ -154,8 +149,54 @@ void updateEnemy(ptrPlayer p, ptrMap m){
 
 	moveEnemy(p, m);
 	
+	int rastroMaisFresco = 0;
+	int row = -1;
+	int column = -1;
+
 	if(p->state == PREDATOR){
-		randomEnemyMovement(p, m);
+		for(int i = 0; i < m->rows; i++){
+			for(int j = 0; j < m->columns; j++){
+				
+				if(m->matrix[i][j] >= 400 && m->matrix[i][j] > rastroMaisFresco){
+					
+					if(abs(i - p->obj.pos.row) + abs(j - p->obj.pos.column) <= 10){
+						
+						rastroMaisFresco = m->matrix[i][j];
+						row = i;
+						column = j;
+					}
+				}
+			}
+		}
+
+
+
+		int i = row;
+		int j = column;
+		int changedDir = 0;
+		if(row == -1 || column == -1)
+			return;
+
+		if(p->obj.pos.row < i){
+			Direction dir = { .horizontal = 0, .vertical = 1};
+			changeDirectionPlayer(p, m, dir);
+			return;
+		}
+		if(p->obj.pos.row > i){
+			Direction dir =  { .horizontal = 0, .vertical = -1};
+			changeDirectionPlayer(p, m, dir);
+			return;
+		}
+		if(p->obj.pos.column < j){
+			Direction dir =  { .horizontal = 1, .vertical = 0};
+			changeDirectionPlayer(p, m, dir);
+			return;
+		}
+		if(p->obj.pos.column > j){
+			Direction dir =  { .horizontal = -1, .vertical = 0};
+			changeDirectionPlayer(p, m, dir);
+			return;
+		}
 	}
 	else if(p->state == PREY){
 		randomEnemyMovement(p, m);
@@ -180,6 +221,15 @@ void movePlayer(ptrPlayer p, ptrMap m){
 		p->additionalPos.y = 0;
 		//Seta nova direção
 		p->dir = p->nextDir;
+
+		if(m->matrix[p->obj.pos.row][p->obj.pos.column] == 2){
+			m->matrix[p->obj.pos.row][p->obj.pos.column] = 0;
+			p->pilulaTime = 500;
+		}
+
+		if(p->pilulaTime <= 0)
+			m->matrix[p->obj.pos.row][p->obj.pos.column] = 999; //Quando chega a 600 some!
+
 
 		if(m->matrix[p->obj.pos.row + p->dir.vertical][p->obj.pos.column + p->dir.horizontal] == WALL){
 			//procurar novo lugar para ir 
@@ -242,7 +292,7 @@ void tryChangeDirections(ptrPlayer p, ptrMap m, Direction currDir){
 
 
 	if(sucess == 0){
-		changeDirectionPlayerCollision(p, m, inverseDir);
+		int a = changeDirectionPlayerCollision(p, m, inverseDir);
 	}
 }
 
@@ -250,7 +300,7 @@ int changeDirectionPlayerCollision(ptrPlayer p, ptrMap m, Direction dir){
 
 	Vector2 nextPos = { .row = p->obj.pos.row, .column = p->obj.pos.column};
 	
-	if(m->matrix[nextPos.row + dir.vertical][nextPos.column + dir.horizontal] == GROUND){
+	if(m->matrix[nextPos.row + dir.vertical][nextPos.column + dir.horizontal] != WALL){
 		
 		p->dir = dir;
 		p->nextDir = dir;
@@ -264,7 +314,7 @@ int changeDirectionPlayer(ptrPlayer p, ptrMap m, Direction dir){
 
 	Vector2 nextPos = { .row = p->obj.pos.row + p->dir.vertical, .column = p->obj.pos.column + p->dir.horizontal};
 	
-	if(m->matrix[nextPos.row + dir.vertical][nextPos.column + dir.horizontal] == GROUND){
+	if(m->matrix[nextPos.row + dir.vertical][nextPos.column + dir.horizontal] != WALL){
 		
 		p->nextDir = dir;
 		return 1;

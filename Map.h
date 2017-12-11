@@ -24,5 +24,7 @@ ptrMap createMapFromFile(const unsigned char* name);
 void resizeMap(ptrMap map);
 bool printMap(const ptrMap map);
 bool destroyMap(ptrMap map);
+void updateMap(ptrMap map);
+void removeRastro(ptrMap map);
 
 #endif

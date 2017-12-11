@@ -213,6 +213,10 @@ void draw(){
 				SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
 				SDL_RenderFillRect(renderer, &rect);
 			}
+			if(map->matrix[i][j] >= 600){
+				SDL_SetRenderDrawColor(renderer, 0, 100, 0, 255);
+				SDL_RenderFillRect(renderer, &rect);
+			}
 
 		}
 	}
@@ -229,6 +233,7 @@ void draw(){
 
 void update(){
 
+	updateMap(map);
 	updateEnemy(blink, map);
 	int resultPlayer = updatePlayer(player, map, enemies);
 
@@ -246,6 +251,7 @@ void update(){
 
 	if(resultPlayer == 1){ //game Over
 		SDL_Delay(1500);
+		removeRastro(map);
 		gameManager->life--;
 		
 		if(gameManager->life <= 0){
