@@ -13,9 +13,10 @@ typedef struct player{
 	Direction nextDir;
 } *ptrPlayer;
 
-ptrPlayer createPlayer();
+ptrPlayer createPlayer(ptrMap m);
+ptrPlayer createBlink(ptrMap m);
 void movePlayer(ptrPlayer p, ptrMap m);
-void changeDirectionPlayer(ptrPlayer p, ptrMap m, Direction dir);
+int changeDirectionPlayer(ptrPlayer p, ptrMap m, Direction dir);
 void drawPlayer(ptrPlayer p, ptrMap m, SDL_Renderer* renderer);
 void updatePlayer(ptrPlayer p, ptrMap m);
 #endif

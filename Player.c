@@ -37,11 +37,35 @@ ptrPlayer createPlayer(ptrMap m){
 	Pos pos = { .x = 0.0, .y = 0.0};
 	p->additionalPos = pos;
 
-	p->moveDistance = 100; 
+	p->moveDistance = 20; 
+	p->currDistance = 0;
+
+	printf("aaaaaa\n");
+	return p;
+}
+
+ptrPlayer createBlink(ptrMap m){
+
+	ptrPlayer p = malloc(sizeof(ptrPlayer));
+	p->obj = findFirstMapTile(m);
+
+	Color color = { .r = 255, .g = 255, .b = 0, .a = 255};
+	p->obj.color = color;
+
+	Direction direction = { .horizontal = 1, .vertical = 0};
+	p->dir = direction;
+	p->nextDir = direction;
+
+	Pos pos = { .x = 0.0, .y = 0.0};
+	p->additionalPos = pos;
+
+	p->moveDistance = 20; 
 	p->currDistance = 0;
 
 	return p;
 }
+
+
 
 void drawPlayer(ptrPlayer p, ptrMap m, SDL_Renderer* renderer){
 
@@ -80,17 +104,70 @@ void movePlayer(ptrPlayer p, ptrMap m){
 		//Seta nova direção
 		p->dir = p->nextDir;
 
+
+		if(m->matrix[p->obj.pos.row + p->dir.vertical][p->obj.pos.column + p->dir.horizontal] == WALL){
+			//procurar novo lugar para ir 
+			tryChangeDirections(p, m, p->dir);
+		}
 	}
 }
-//			  *
-// [0] ----> [1] *
-//			  *
-void changeDirectionPlayer(ptrPlayer p, ptrMap m, Direction dir){
+
+void tryChangeDirections(ptrPlayer p, ptrMap m, Direction currDir){
+
+	Direction inverseDir = {.horizontal = currDir.horizontal * -1, .vertical = currDir.vertical * -1};
+	Direction dir = {.horizontal = 1, .vertical = 0};
+	Direction allDir[] = { {.horizontal = 1, .vertical = 0},
+							{.horizontal = 0, .vertical = 1},
+							{.horizontal = -1, .vertical = 0},
+							{.horizontal = 0, .vertical = -1}, };
+
+	int i = 0;
+	int sucess = 0;
+	dir = allDir[i];
+
+	while(i < 4){
+
+		//A direcao inversa e o ultimo recurso e sabemos que vai dar certo, logo nao fazemos a tentativa;
+		if(dir.horizontal == inverseDir.horizontal && dir.vertical == inverseDir.vertical){ }
+		else{
+			sucess = changeDirectionPlayerCollision(p, m, dir);
+			if(sucess == 1)
+				break;
+		}
+
+		i++;
+		dir = allDir[i];
+	}
+
+
+	if(sucess == 0){
+		changeDirectionPlayerCollision(p, m, inverseDir);
+	}
+}
+
+int changeDirectionPlayerCollision(ptrPlayer p, ptrMap m, Direction dir){
+
+	Vector2 nextPos = { .row = p->obj.pos.row, .column = p->obj.pos.column};
+	
+	if(m->matrix[nextPos.row + dir.vertical][nextPos.column + dir.horizontal] == GROUND){
+		
+		p->dir = dir;
+		p->nextDir = dir;
+		return 1;
+	}
+
+	return 0;
+}
+
+int changeDirectionPlayer(ptrPlayer p, ptrMap m, Direction dir){
 
 	Vector2 nextPos = { .row = p->obj.pos.row + p->dir.vertical, .column = p->obj.pos.column + p->dir.horizontal};
 	
 	if(m->matrix[nextPos.row + dir.vertical][nextPos.column + dir.horizontal] == GROUND){
 		
 		p->nextDir = dir;
+		return 1;
 	}
+
+	return 0;
 }
