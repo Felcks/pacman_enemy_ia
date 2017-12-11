@@ -15,6 +15,9 @@ bool isRunning = true;
 ptrMap map = NULL;
 ptrPlayer player = NULL;
 ptrPlayer blink = NULL;
+ptrPlayer pink = NULL;
+ptrPlayer inky = NULL;
+ptrPlayer clyde = NULL;
 ptrPlayer enemies[4];
 ptrGameManager gameManager;
 
@@ -174,11 +177,14 @@ void start(char* mapName){
 	resizeMap(map);
 	player = createPlayer(map);
 	blink = createBlink(map);
+	pink = createPink(map);
+	inky = createInky(map);
+	clyde = createClyde(map);
 
 	enemies[0] = blink;
-	enemies[1] = blink;
-	enemies[2] = blink;
-	enemies[3] = blink;
+	enemies[1] = pink;
+	enemies[2] = inky;
+	enemies[3] = clyde;
 
 	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED); 
 
@@ -223,6 +229,10 @@ void draw(){
 
 	drawPlayer(player, map, renderer);
 	drawPlayer(blink, map, renderer);
+	drawPlayer(pink, map, renderer);
+	drawPlayer(inky, map, renderer);
+	drawPlayer(clyde, map, renderer);
+
 	drawText();
 	SDL_RenderCopy(renderer, messageScore, NULL, &scoreRect);
 	SDL_RenderCopy(renderer, messageLifes, NULL, &lifeRect);
@@ -235,6 +245,10 @@ void update(){
 
 	updateMap(map);
 	updateEnemy(blink, map);
+	updateEnemy(pink, map);
+	updateEnemy(inky, map);
+	updateEnemy(clyde, map);
+
 	int resultPlayer = updatePlayer(player, map, enemies);
 
 	if(player->pilulaTime > 0){
@@ -260,15 +274,18 @@ void update(){
 
 		player = createPlayer(map);
 		blink = createBlink(map);
+		pink = createPink(map);
+		inky = createInky(map);
+		clyde = createClyde(map);
 
 		enemies[0] = blink;
-		enemies[1] = blink;
-		enemies[2] = blink;
-		enemies[3] = blink;
+		enemies[1] = pink;
+		enemies[2] = inky;
+		enemies[3] = clyde;
 	}
 	else if(resultPlayer == 2){ //Comeu um cara
 
-		gameManager->score += pow(200, gameManager->scoreStrike);
+		gameManager->score += 200 * gameManager->scoreStrike;
 		gameManager->scoreStrike++;
 	}
 }	

@@ -28,6 +28,9 @@ typedef struct player{
 
 ptrPlayer createPlayer(ptrMap m);
 ptrPlayer createBlink(ptrMap m);
+ptrPlayer createInky(ptrMap m);
+ptrPlayer createPink(ptrMap m);
+ptrPlayer createClyde(ptrMap m);
 void movePlayer(ptrPlayer p, ptrMap m);
 void moveEnemy(ptrPlayer p, ptrMap m);
 int changeDirectionPlayer(ptrPlayer p, ptrMap m, Direction dir);

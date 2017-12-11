@@ -10,13 +10,13 @@
 Color preyColor = { .r = 0, .g = 0, .b = 255};
 
 Color blinkColor = { .r = 255, .g = 0, .b = 0};
-Color pinkColor = { .r = 200, .g = 0, .b = 50};
+Color pinkColor = { .r = 255, .g = 0, .b = 255};
 
 Color allColors[4] = {
 	 { .r = 255, .g = 0, .b = 0},
-	 { .r = 200, .g = 0, .b = 50},
-	 { .r = 200, .g = 0, .b = 50},
-	 { .r = 200, .g = 0, .b = 50}
+	 { .r = 255, .g = 0, .b = 255},
+	 { .r = 0, .g = 255, .b = 255},
+	 { .r = 255, .g = 69, .b = 00}
 };
 
 
@@ -41,7 +41,9 @@ ptrPlayer createPlayer(ptrMap m){
 	srand(time(NULL)); 
 
 	ptrPlayer p = malloc(sizeof(struct player));
-	p->obj = findFirstMapTile(m);
+	Vector4 v = { .row = 44, .column = 15};
+	Object obj = { .pos = v };
+	p->obj = obj;
 
 	Color color = { .r = 255, .g = 255, .b = 0, .a = 255};
 	p->obj.color = color;
@@ -93,6 +95,92 @@ ptrPlayer createBlink(ptrMap m){
 	return p;
 }
 
+ptrPlayer createPink(ptrMap m){
+
+	ptrPlayer p = malloc(sizeof(struct player));
+	Vector4 v = { .row = 1, .column = 30};
+	Object obj = { .pos = v };
+	p->obj = obj;
+
+	p->obj.color = allColors[1];
+
+	Direction direction = { .horizontal = 0, .vertical = 1};
+	p->dir = direction;
+	p->nextDir = direction;
+
+	Pos pos = { .x = 0.0, .y = 0.0};
+	p->additionalPos = pos;
+
+	p->moveDistance = 14; 
+	p->defaultMoveDistance = 14; 
+	p->currDistance = 0;
+
+	p->state = PREDATOR;
+	p->captureRange = 10;
+	p->maxChangeDirChanceDelay = 50;
+	p->changeDirChanceDelay = 0;
+	p->deadTime = 500;
+	p->isDead = 0;
+	return p;
+}
+
+ptrPlayer createInky(ptrMap m){
+
+	ptrPlayer p = malloc(sizeof(struct player));
+	Vector4 v = { .row = 1, .column = 1};
+	Object obj = { .pos = v };
+	p->obj = obj;
+
+	p->obj.color = allColors[2];
+
+	Direction direction = { .horizontal = 1, .vertical = 0};
+	p->dir = direction;
+	p->nextDir = direction;
+
+	Pos pos = { .x = 0.0, .y = 0.0};
+	p->additionalPos = pos;
+
+	p->moveDistance = 14; 
+	p->defaultMoveDistance = 14; 
+	p->currDistance = 0;
+
+	p->state = PREDATOR;
+	p->captureRange = 10;
+	p->maxChangeDirChanceDelay = 50;
+	p->changeDirChanceDelay = 0;
+	p->deadTime = 500;
+	p->isDead = 0;
+	return p;
+}
+
+ptrPlayer createClyde(ptrMap m){
+
+	ptrPlayer p = malloc(sizeof(struct player));
+	Vector4 v = { .row = 62, .column = 1};
+	Object obj = { .pos = v };
+	p->obj = obj;
+
+	p->obj.color = allColors[3];
+
+	Direction direction = { .horizontal = 0, .vertical = -1};
+	p->dir = direction;
+	p->nextDir = direction;
+
+	Pos pos = { .x = 0.0, .y = 0.0};
+	p->additionalPos = pos;
+
+	p->moveDistance = 14; 
+	p->defaultMoveDistance = 14; 
+	p->currDistance = 0;
+
+	p->state = PREDATOR;
+	p->captureRange = 10;
+	p->maxChangeDirChanceDelay = 50;
+	p->changeDirChanceDelay = 0;
+	p->deadTime = 500;
+	p->isDead = 0;
+	return p;
+}
 
 
 void drawPlayer(ptrPlayer p, ptrMap m, SDL_Renderer* renderer){
