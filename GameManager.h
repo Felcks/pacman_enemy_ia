@@ -7,7 +7,8 @@ typedef struct gameManager{
 	int maxLifes;
 	int life;
 	int* maxScores;
-	int score;
+	double score;
+	int scoreStrike;
 } *ptrGameManager;
 
 bool run(void* parameters, void* map);

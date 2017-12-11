@@ -15,10 +15,18 @@ bool isRunning = true;
 ptrMap map = NULL;
 ptrPlayer player = NULL;
 ptrPlayer blink = NULL;
-
-
 ptrPlayer enemies[4];
 ptrGameManager gameManager;
+
+SDL_Rect scoreRect;
+SDL_Rect lifeRect;
+SDL_Texture* messageScore = NULL;
+SDL_Texture* messageLifes = NULL;
+SDL_Texture* valueScore = NULL;
+static char valueScoreText[10] = {0};
+static char valueLifesText[10] = {0};
+static const char* textScore = "Score: ";
+static const char* textLifes = "Lifes: ";
 
 int init();
 void sdl_update();
@@ -27,6 +35,8 @@ void end();
 void start(char* mapName);
 void draw();
 void update();
+void drawText(void);
+void render_text(SDL_Renderer *renderer, int x, int y,const char *text, TTF_Font *font, SDL_Rect *rect,  SDL_Color *color);
 
 int main(int argc, char* argv[]){	
 
@@ -42,9 +52,7 @@ int main(int argc, char* argv[]){
 
 	
 	start(argv[1]);
-
 	sdl_update();
-
 	end();
 
 	return 0;
@@ -92,30 +100,72 @@ void sdl_update(){
 		if((1000u/getFPS()) > (SDL_GetTicks() - l_start)){
 			//SDL_Delay(10);
     		SDL_Delay((1000u/getFPS()) - (SDL_GetTicks() - l_start));
-    		gameManager->score++;
+    		gameManager->score += 0.1;
     	}
 	}
 }
 
-SDL_Rect scoreRect;
-SDL_Texture* message = NULL;
-
 void createFont(){
 
-	font = TTF_OpenFont("arial.ttf", 12); //this opens a font style and sets a size
+	font = TTF_OpenFont("arial.ttf", 17); //this opens a font style and sets a size
+	
+	int w,h;
 	SDL_Color fColor ;
-	 fColor.r = 255;
-       fColor.g = 255;
-        fColor.b = 255;
-        SDL_Surface* surfaceMessage = TTF_RenderText_Solid(font, "put your text here", fColor); // as TTF_RenderText_Solid could only be used on SDL_Surface then you have to create the surface first
+	fColor.r = 255;
+    fColor.g = 255;
+    fColor.b = 255;
+    SDL_Surface* surfacemessageScore = TTF_RenderText_Solid(font,textScore, fColor); // as TTF_RenderText_Solid could only be used on SDL_Surface then you have to create the surface first
+    SDL_Surface* surfacemessageLifes = TTF_RenderText_Solid(font,textLifes, fColor);
 
-	message = SDL_CreateTextureFromSurface(renderer, surfaceMessage); //now you can convert it into a texture
+	messageScore = SDL_CreateTextureFromSurface(renderer, surfacemessageScore); //now you can convert it into a texture
+	messageLifes = SDL_CreateTextureFromSurface(renderer, surfacemessageLifes);
 
-	 //create a rect
-	scoreRect.x = 0;  //controls the rect's x coordinate 
-	scoreRect.y = 0; // controls the rect's y coordinte
-	scoreRect.w = 0; // controls the width of the rect
-	scoreRect.h = 0; // controls the height of the rect
+	TTF_SizeText(font,textScore,&w,&h);
+	
+	scoreRect.x = 10;  
+	scoreRect.y = 10; 
+	scoreRect.w = w; 
+	scoreRect.h = h;
+
+	TTF_SizeText(font,textLifes,&w,&h);
+	lifeRect.x = 10;
+	lifeRect.y = 30;
+	lifeRect.w = w;
+	lifeRect.h = h;
+}
+
+void render_text(SDL_Renderer *renderer, int x, int y,const char *text, TTF_Font *font, SDL_Rect *rect,  SDL_Color *color) 
+{
+	SDL_Surface *surface;
+    SDL_Texture *texture;
+
+    surface = TTF_RenderText_Solid(font, text, *color);
+    texture = SDL_CreateTextureFromSurface(renderer, surface);
+    rect->x = x;
+    rect->y = y;
+    rect->w = surface->w;
+    rect->h = surface->h;
+    SDL_FreeSurface(surface);
+    SDL_RenderCopy(renderer, texture, NULL, rect);
+    SDL_DestroyTexture(texture);
+}
+void drawText(void){
+
+	SDL_Rect rectScore;
+	SDL_Rect rectLifes;
+	int w,h;
+	SDL_Color fColor ;
+	fColor.r = 255;
+    fColor.g = 255;
+    fColor.b = 255;
+
+    TTF_SizeText(font,textScore,&w,&h);
+    itoa((int)gameManager->score,valueScoreText,10);
+    render_text(renderer,w+10,10,  valueScoreText,font,&rectScore,&fColor);
+
+    TTF_SizeText(font,textLifes,&w,&h);
+    itoa(gameManager->life,valueLifesText,10);
+    render_text(renderer,w+10,30,valueLifesText,font,&rectLifes,&fColor);
 }
 
 void start(char* mapName){
@@ -135,8 +185,9 @@ void start(char* mapName){
 	gameManager = malloc(sizeof(struct gameManager));
 	gameManager->maxLifes = 3;
 	gameManager->life = 3;
-	gameManager->score = 0;	
-	//createFont();
+	gameManager->score = 0.0;
+	gameManager->scoreStrike = 1;	
+	createFont();
 }
 
 void draw(){
@@ -144,7 +195,6 @@ void draw(){
 	SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, SDL_ALPHA_OPAQUE); 
 	SDL_RenderClear(renderer); 
 	
-
 	SDL_SetRenderDrawColor(renderer, 0, 0, 100, 255);
 
 	SDL_Rect rect;
@@ -169,7 +219,9 @@ void draw(){
 
 	drawPlayer(player, map, renderer);
 	drawPlayer(blink, map, renderer);
-
+	drawText();
+	SDL_RenderCopy(renderer, messageScore, NULL, &scoreRect);
+	SDL_RenderCopy(renderer, messageLifes, NULL, &lifeRect);
 	//SDL_RenderCopy(renderer, message, NULL, &scoreRect);
 
 	SDL_RenderPresent(renderer); 
@@ -178,9 +230,21 @@ void draw(){
 void update(){
 
 	updateEnemy(blink, map);
-	int gameOver = updatePlayer(player, map, enemies);
+	int resultPlayer = updatePlayer(player, map, enemies);
 
-	if(gameOver == 1){
+	if(player->pilulaTime > 0){
+
+		for(int i = 0; i < 4; i++)
+			changeState(enemies[i], PREY, i);
+	}
+	else{
+
+		gameManager->scoreStrike = 1;
+		for(int i = 0; i < 4; i++)
+			changeState(enemies[i], PREDATOR, i);
+	}
+
+	if(resultPlayer == 1){ //game Over
 		SDL_Delay(1500);
 		gameManager->life--;
 		
@@ -196,12 +260,16 @@ void update(){
 		enemies[2] = blink;
 		enemies[3] = blink;
 	}
+	else if(resultPlayer == 2){ //Comeu um cara
+
+		gameManager->score += pow(200, gameManager->scoreStrike);
+		gameManager->scoreStrike++;
+	}
 }	
 
 void end(){
 
-	//destroyMap(map);
-	SDL_FreeSurface(screenSurface);
+	//destroyMap(map);;
 	TTF_CloseFont(font);
 	TTF_Quit();
 	SDL_DestroyWindow(window);

@@ -8,9 +8,16 @@
 #define YELLOW SDL_MapRGB(screenSurface->format,0xFF,0xFF,0x00)
 
 Color preyColor = { .r = 0, .g = 0, .b = 255};
+
 Color blinkColor = { .r = 255, .g = 0, .b = 0};
 Color pinkColor = { .r = 200, .g = 0, .b = 50};
 
+Color allColors[4] = {
+	 { .r = 255, .g = 0, .b = 0},
+	 { .r = 200, .g = 0, .b = 50},
+	 { .r = 200, .g = 0, .b = 50},
+	 { .r = 200, .g = 0, .b = 50}
+};
 
 
 Object findFirstMapTile(ptrMap m){
@@ -47,7 +54,11 @@ ptrPlayer createPlayer(ptrMap m){
 	p->additionalPos = pos;
 
 	p->moveDistance = 10; 
+	p->defaultMoveDistance = 10; 
 	p->currDistance = 0;
+
+	p->pilulaTime = 0;
+	p->isDead = 0;
 
 	return p;
 }
@@ -70,18 +81,24 @@ ptrPlayer createBlink(ptrMap m){
 	p->additionalPos = pos;
 
 	p->moveDistance = 14; 
+	p->defaultMoveDistance = 14; 
 	p->currDistance = 0;
 
 	p->state = PREDATOR;
 	p->captureRange = 10;
 	p->maxChangeDirChanceDelay = 50;
 	p->changeDirChanceDelay = 0;
+	p->deadTime = 500;
+	p->isDead = 0;
 	return p;
 }
 
 
 
 void drawPlayer(ptrPlayer p, ptrMap m, SDL_Renderer* renderer){
+
+	if(p->isDead % 2 != 0)
+		return;
 
 	SDL_SetRenderDrawColor(renderer, p->obj.color.r,  p->obj.color.g, p->obj.color.b, p->obj.color.a);
 	int j = p->obj.pos.column;
@@ -99,26 +116,41 @@ void drawPlayer(ptrPlayer p, ptrMap m, SDL_Renderer* renderer){
 int updatePlayer(ptrPlayer p, ptrMap m, ptrPlayer enemies[4]){
 
 	movePlayer(p, m);
+	if(p->pilulaTime > 0)
+		p->pilulaTime--;
 
 	for(int i = 0; i < 4; i++){
 
 		if(abs(p->obj.pos.row - enemies[i]->obj.pos.row) <= 1 &&
-			abs(p->obj.pos.column - enemies[i]->obj.pos.column) <= 1){
-			//TODO conferir se ta com pilula ou nao
-			//Resetar tudo
-			return 1;
+			abs(p->obj.pos.column - enemies[i]->obj.pos.column) <= 1 && enemies[i]->isDead <= 0){
+
+			if(p->pilulaTime > 0){
+
+				enemies[i]->isDead = enemies[i]->deadTime;
+				return 2;
+			}
+			else{
+				//perdeu
+				return 1;
+			}
 		}
 	}
 
 
 	if(m->matrix[p->obj.pos.row][p->obj.pos.column] == 2){
 		m->matrix[p->obj.pos.row][p->obj.pos.column] = 0;
+		p->pilulaTime = 500;
 	}
 
 	return 0;
 }
 
 void updateEnemy(ptrPlayer p, ptrMap m){
+
+	if(p->isDead > 0){
+		p->isDead--;
+		return;
+	}
 
 	moveEnemy(p, m);
 	
@@ -260,3 +292,18 @@ void randomEnemyMovement(ptrPlayer p, ptrMap m){
 	}
 }
 
+void changeState(ptrPlayer p, State state, int index){
+
+	if(p->state == state)
+		return;
+
+	p->state = state;
+	if(state == PREY){
+		p->moveDistance = p->defaultMoveDistance*2;
+		p->obj.color = preyColor;
+	}
+	else{
+		p->moveDistance = p->defaultMoveDistance;
+		p->obj.color = allColors[index];
+	}
+}
